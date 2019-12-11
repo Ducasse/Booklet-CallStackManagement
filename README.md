@@ -1,4 +1,4 @@
-# A booklet on Call Stack Management
+# A booklet on Call Stack Management V2.0
 
 [![Build status][badge]][travis]
 
