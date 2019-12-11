@@ -9,7 +9,7 @@ Smalltalk snapshot: true andQuit: false.
 
 % ! Introduction
 
-This part of the book deals with call stack management, especially when the executed programming language supports closures. 
+This book deals with call stack management, especially when the executed programming language supports closures. 
 
 To master all the concepts exposed, the reader has to implement several interpreters with an increasing level of complexity. An interpreter is a program that executes other programs written in a programming language. All the interpreters are designed to execute code written in a very simple programming language, SmiLang, managing only small integers.
 
