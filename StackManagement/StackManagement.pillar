@@ -11,7 +11,9 @@ Smalltalk snapshot: true andQuit: false.
 
 This book deals with call stack management, especially when the executed programming language supports closures. 
 
-To master all the concepts exposed, the reader has to implement several interpreters with an increasing level of complexity. An interpreter is a program that executes other programs written in a programming language. All the interpreters are designed to execute code written in a very simple programming language, SmiLang, managing only small integers.
+To master all the concepts exposed, the reader has to implement several interpreters with an increasing level of complexity.
+An interpreter is a program that executes other programs written in a programming language.
+All the interpreters are designed to execute code written in a very simple programming language, SmiLang, managing only small integers.
 
 Although it is recommended to implement all the interpreters described in this part, the reader has only to understand and implement the context interpreters described in Chapters *@ContextInterpreter* and *@ClosureContextInterpreter* and read the Chapters *@StackImplementation* and *@Discussion* to continue reading the book. Chapters *@StackInterpreter*, *@StackPages*, *@ClosureStackInterpreter1* and *@ClosureStackInterpreter2* deal with interpreters using a native stack and are not required to understand the next parts of the book.
 
@@ -49,24 +51,33 @@ Thanks to Cyril Ferlicot, Christophe Demarey and Vincent Blondeau for their revi
 !! Theory: Stack Implementation
 @StackImplementation
 
-This chapter describes how to implement efficiently a stack. This discussion is theoretical and does not not deal directly with call stack management. However, efficient call stack management relies on efficient stack implementations, hence call stack management is a direct application of what is described in this chapter. In fact, while explaining the different interpreters, the book refers to this chapter to detail which stack implementation was chosen for which part of the call stack and why it seemed to be the best performance-wise.
+This chapter describes how to implement efficiently a stack. 
+This discussion is theoretical and does not not deal directly with call stack management. 
+However, efficient call stack management relies on efficient stack implementations, hence call stack management is a direct application of what is described in this chapter. 
+In fact, while explaining the different interpreters, the book refers to this chapter to detail which stack implementation was chosen for which part of the call stack and why it seemed to be the best performance-wise.
 
-Different implementations of stacks, detailled with samples of Pharo code, are explained and discussed in the following sections. There is not such a thing as a very efficient ''generic'' stack implementation for the level of performance we need for an execution stack. In fact, depending on different constraints, the developer can decide to implement a stack one way or another way to reach maximum efficiency. 
+Different implementations of stacks, detailled with samples of Pharo code, are explained and discussed in the following sections. 
+There is not such a thing as a very efficient ''generic'' stack implementation for the level of performance we need for an execution stack.
+In fact, depending on different constraints, the developer can decide to implement a stack one way or another way to reach maximum efficiency.
 
-In high-level languages such as Pharo, people usually use the ==OrderedCollection== class to represent data structures such as stacks or queues. In this chapter, the implementations described are usually implemented and used in low level languages, more precisely C, C\+\+ or Rust.
+In high-level languages such as Pharo, people usually use the ==OrderedCollection== class to represent data structures such as stacks or queues.
+In this chapter, the implementations described are usually implemented and used in low level languages, more precisely C, C\+\+ or Rust.
 
-The conventional APIs of a stack are ==push:==, ==pop== and ==top==. One can consider adding a few other messages, such as ==size==. However, messages such as ==at:==, ==do:== or ==remove:== are ""not"" part of a conventional stack APIs. (SD: I do not understand what you want to say with the last sentence. )
+The conventional APIs of a stack are ==push:==, ==pop== and ==top==.
+One can consider adding a few other messages, such as ==size==.
 
 We will start to look at naive implementations (linked-list and array based) and after advanced ones (fixed-sized stack, copying stack and stack page stack).
+
 
 !!! Naive Implementation: Linked List 
 @LLStack
 
-The first naive implementation is to represent a stack as a linked list. The stack keeps a reference to the top element, and each element keeps a reference to the previous element on stack, or nil if it's the bottom element.
+The first naive implementation is to represent a stack as a linked list.
+The stack keeps a reference to the top element, and each element keeps a reference to the previous element on stack, or nil if it's the bottom element.
 
 Figure *@linkedListStack* shows an example of such a stack, where the characters ==$A, $B and $C== were successively pushed.
 
-+Linked List Stack where ==$A, $B and $C== were successively pushed.>file://figures/linkedListStack.pdf|width=50|label=linkedListStack+ 
++Linked List Stack where ==$A, $B and $C== were successively pushed.>file://figures/Stack-LinkedList.pdf|width=50|label=linkedListStack+ 
 
 Here is possible code that could be written to implement a stack using a linked list (we omitted the getters and setters on ==StackElement==).
 
@@ -84,7 +95,7 @@ Object subclass: #StackElement
 	package: 'Collection-Stack'
 ]]]
 
-[[[	
+[[[
 Stack >> push: value
 	topElement := StackElement new
 		previousElement: topElement;
@@ -93,7 +104,7 @@ Stack >> push: value
 	^ value
 ]]]
 
-[[[	
+[[[
 Stack >> pop
 	^ topElement 
 		ifNil: [ self error: 'stack underflow' ]
@@ -104,9 +115,11 @@ Stack >> pop
 			value ]
 ]]]
 
-The implementation of the ==Stack== class in Pharo is very similar to this implementation. However, this class has a much larger APIs, most of them being unconventionnal for a stack.
+The implementation of the ==Stack== class in Pharo is very similar to this implementation. 
+However, this class has a much larger APIs, most of them being unconventionnal for a stack.
 
-This linked list implementation has the big advantage that it cannot overflow (as long as there is memory available). In addition, the stack does not need to allocate memory for elements that are not yet pushed on stack.
+This linked list implementation has the big advantage that it cannot overflow (as long as there is memory available).
+In addition, the stack does not need to allocate memory for elements that are not yet pushed on stack.
 
 It has however several big problems:
 - each element requires an indirection to keep the reference to the previous element through an instance of ==StackElement==. This has two drawbacks:
@@ -114,14 +127,16 @@ It has however several big problems:
 -- Accessing an element of the stack requires two memory reads, one to read the instance of ==StackElement==, one to read the element itself.
 - each element can be very far in memory from the the previous element, leading to many CPU cache misses when pushing and popping elements on stack often.
 
-This implementation cannot be used directly for a call stack, mostly because it is really slow. However, this design inspired a better solution, the stack-page implementation, described in the following sections.
+This implementation cannot be used directly for a call stack, mostly because it is really slow. 
+However, this design inspired a better solution, the stack-page implementation, described in the following sections.
 
 
 
 !!! Naive Implementation: Array 
 @arrayImplStack
 
-The other naive implementation of a stack is composed of a fixed-sized array and a stackPointer. The array holds the values pushed on the stack, while stackPointer holds the index of the top of the stack.
+The other naive implementation of a stack is composed of a fixed-sized array and a stackPointer. 
+The array holds the values pushed on the stack, while stackPointer holds the index of the top of the stack.
 
 Figure *@ArrayStack* shows an example of such a stack, where the characters ==$A, $B and $C== were successively pushed.
 

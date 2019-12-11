@@ -1,1 +1,1 @@
-${inputFile:StackManagement/StackManagement.pillar}$
+${inputFile:path=StackManagement/StackManagement.pillar}$
