@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{sbabook}[2013/03/08]
+\ProvidesClass{sbabook}[2020/02/28]
 
 % \ExecuteOptions{a4paper,11pt,twoside}
 \ProcessOptions*
@@ -248,6 +248,11 @@
 \setfloatadjustment{figure}{\small\sffamily\centering}
 \setfloatadjustment{table} {\small\sffamily\centering}
 
+\usepackage{xtab}
+\newenvironment{fullwidthtabular}[1]{%
+    \begin{xtabular*}{\textwidth}{@{}#1@{}}%
+}{\end{xtabular*}}
+
 %%%
 %%% Graphics
 %%%
@@ -328,6 +333,12 @@
     keywordstyle={},
     stringstyle={},
     commentstyle={},
+    numberstyle = \tiny\ttfamily,
+    numberblanklines = false,
+    % numberfirstline = true,
+    firstnumber = 1,
+    stepnumber = 2, % number placement varies from listing to listing…
+    numbersep = 7pt,
 }
 \lstset{style = sbabook}
 

@@ -118,10 +118,10 @@ Stack >> pop
 The implementation of the ==Stack== class in Pharo is very similar to this implementation. 
 However, this class has a much larger APIs, most of them being unconventionnal for a stack.
 
-This linked list implementation has the big advantage that it cannot overflow (as long as there is memory available).
+This linked-list implementation has the big advantage that it cannot overflow (as long as there is memory available).
 In addition, the stack does not need to allocate memory for elements that are not yet pushed on stack.
 
-It has however several big problems:
+It has, however, several important problems:
 - each element requires an indirection to keep the reference to the previous element through an instance of ==StackElement==. This has two drawbacks:
 -- The memory footprint per element is increased: The stack element requires at least an extra machine word to refer to the previous element).
 -- Accessing an element of the stack requires two memory reads, one to read the instance of ==StackElement==, one to read the element itself.

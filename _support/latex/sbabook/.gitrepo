@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/cdlm/sbabook.git
-	branch = v0.2.2
-	commit = a741ab95acd28ca4ffbb022f479704b5d7c74062
-	parent = 58577f9b85e0183a086345506d9415ab9c74cfbf
+	branch = master
+	commit = 6ba943f40408c19528b5c62d5c498c9507e44335
+	parent = d9663feb3a92f12b7cc6268e6cc41a5d6aef60da
 	method = merge
-	cmdver = 0.4.0
+	cmdver = 0.4.1

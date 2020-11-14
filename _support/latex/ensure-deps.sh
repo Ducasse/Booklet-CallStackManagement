@@ -10,7 +10,6 @@ xargs tlmgr install <<DEPS
     footmisc
     gentium-tug
     graphics
-    hyphen-english
     ifetex
     import
     listings
@@ -29,4 +28,5 @@ xargs tlmgr install <<DEPS
     ulem
     varwidth
     xcolor
+    xtab
 DEPS
