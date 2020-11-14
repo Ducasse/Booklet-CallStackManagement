@@ -1,28 +1,31 @@
-sudo: required
-services:
-- docker
+language: smalltalk
+sudo: false
 
-before_install:
-- docker pull dpollet/texlive:pillar
+os:
+  - linux
 
-script: |
-  docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar bash -c "\
-    wget --quiet --output-document=- 'https://raw.githubusercontent.com/pillar-markup/pillar/master/download.sh' | bash \
-    && make spiralbook "
+smalltalk:
+  - Pharo-stable
 
-deploy:
-- provider: bintray
-  file: .bintray.json
-  on:
-    repo: SquareBracketAssociates/Booklet-CallStackManagement
-  skip_cleanup: true
-  user: ducasse
-  key:
-    secure: DcUVa4fn01gzdpTj18kHiwnry4WE/fih8fGIKmukgsycWMR2eWqOnTk05aTWVBJ6+N9hqNE9eztK1C9lCaRCvY+h/z6rQ0zzlli+7j1OX6kbky9KUNELcsbZGArFJpeGQ16TtEUtwpWUbGLbZrLu5Gxle4+K5qMG7Sm5bJns0J945wTSRPJPD3A7MnqpgX1EDA4d60FIaXulCf42WmG9BM0+rtZ4d6w8ydH4n3dgbAB+7IWPpBPCIeyeBuuaV8j1uu7nPwwklr1/hYnubz90m1d1StFbzdY/r0T9gy3Di7IOCTuLH1yK2fWs+OFqc+SEsrLqNc/ikV9twnTOmBD+PgxIlMqA20pUu3wRd63UjBPNMnPn5IywkPt2eCBIRAPjtQzfqOGt1xYk9+f+Ea7/ES5gYrDugIQ390JD4Uy8HDMBBmXzaH2VSUfnf0qneMcEbV7XZppJ7ZAw1JJlQOv8S4twf/LRMVWvnO46V2zaP739Eibt2fUmg+4UMnnhBQ88nwiG23hHiwuOxsqpCSC0u8UnPRxD/eXwOzUStRmn/GNOHiXqx5bMJnL3+c5s5v2Bap/vewJTRM5wCfayh+8AMAbndq2ivckrT5dlHN6vKHbjVToSwHTirLlg6BRU8omMFe8et+F660u8k4ho9V4kitCjPGY7o24CAToXToJZCBg=
-- provider: releases
-  file: build/book.spiral.pdf
-  on:
-    tags: true
-  skip_cleanup: true
-  api_key:
-    secure: pRfu3fr35BzqQDi1ul0SubPSwO8zcyIidqLRZPz3XIrH4qoy1Zgnq785dmB7ziNQqH+VJyh7askSFY3JLxL0d4P0eUgj2ZDIOhJsUQQ/ihevOBWbxlMOoEPjQfzA11l8WrNCQ566KrcYiISRi7bCg698kPTWSRwOmmvqXOJe5zGkuUbVmMNUV2oxaNV4JC8kVyVWHYy0nNMLEX/hzRZRh1+8K34/ds+fZ7irLrbDWMbKGHCyuLCSqv+zJJdu99nWLTclrCxFzK4DEHaMlFiO7wkUpyQLwZ38EDnb3E7iv045jSqCx3XB+DMRG1Da2/9BIXl0mho5ELdEvfGVAbjI2no5FWd0H1cs4/banAePCFnM7ZscJBaPWgVajB7EzrcADJUoxpmU6+6n1aIC3CnjscfAHqSAKGv8CO/Jh+Uirc8ATRpSqa73f2Nnj9tRCqwCOnFOCEzu0w5l3Ppz2Qpif04P+QbebZehSVaBJ4W01R2i8Rac3IuZDhZVaek1X24HFxUOd/rvHpbhz8eeANdnsWCTkAm+0sD+iKsWKICRMxFZfCK/SPldAcjXZsOsEMTqfx7ZWyCc7GeesQWcmW+z3shziyQd9tdeArJWLwacly3hH3WeyuUD5JyPF9klvDBtHgTVajdU4yp+3oXsrtTmetnBz+RESxQGdLgZRlQBQog=
+env:
+  global:
+    - PILLAR_RELEASE=v8.0.12
+    - PATH="$HOME/texlive/bin/x86_64-linux:$HOME/pillar/build:$PATH"
+
+install:
+  - git clone --branch "$PILLAR_RELEASE" https://github.com/pillar-markup/pillar.git "$HOME/pillar"
+  - ( cd $HOME/pillar; ./scripts/build.sh; )
+  - $HOME/pillar/scripts/ci/install-texlive
+  - ./_support/latex/ensure-deps.sh
+
+script:
+  - pillar build pdf
+
+after_success:
+  - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+  - mv _result/pdf/index.pdf callStackManagement.pdf
+  - bash upload.sh callStackManagement.pdf
+
+branches:
+  except:
+    - /^(?i:continuous)$/
